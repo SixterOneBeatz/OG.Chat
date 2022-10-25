@@ -1,5 +1,10 @@
-import { Counter } from './components/Counter';
-
+import { RouterProvider } from 'react-router-dom';
+import ChatRoomContextProvider from './contexts/ChatRoomContextProvider';
+import { router } from './shared/App.routing';
 export const App = () => {
-  return <Counter />;
+  return (
+    <ChatRoomContextProvider>
+      <RouterProvider router={router} />
+    </ChatRoomContextProvider>
+  );
 };

@@ -46,7 +46,7 @@ namespace OG.Chat.API
 
             app.UseHttpsRedirection();
             app.UseAuthorization();
-            app.UseCors();
+            app.UseCors("CorsPolicy");
             app.MapControllers();
             app.MapHub<ChatRoomHub>("/hub");
         }

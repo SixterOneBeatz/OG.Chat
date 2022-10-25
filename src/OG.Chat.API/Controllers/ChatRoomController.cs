@@ -29,8 +29,11 @@ namespace OG.Chat.API.Controllers
             var grain = _clusterClient.GetGrain<IChatRoomGrain>("DefaultGrain");
             Guid response = await grain.Join(nickname);
 
-            _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response,"default");
-            await _stream.SubscribeAsync(new ChatStreamObserver("DefaultGrain", _hubContext));
+            _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response, "default");
+
+            var subscriptionHandlers = await _stream.GetAllSubscriptionHandles();
+            if (!subscriptionHandlers.Any())
+                await _stream.SubscribeAsync(new ChatStreamObserver("DefaultGrain", _hubContext));
 
             return Ok(response);
         }
@@ -43,8 +46,12 @@ namespace OG.Chat.API.Controllers
             _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response, "default");
 
             var subscriptionHandlers = await _stream.GetAllSubscriptionHandles();
-            foreach (var handle in subscriptionHandlers)
-                await handle.UnsubscribeAsync();
+
+            var members = await grain.GetMembers();
+
+            if (!members.Any())
+                foreach (var handle in subscriptionHandlers)
+                    await handle.UnsubscribeAsync();
 
             return Ok(response);
         }

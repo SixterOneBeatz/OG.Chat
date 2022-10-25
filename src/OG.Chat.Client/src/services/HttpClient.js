@@ -1,18 +1,6 @@
 import axios from 'axios';
 
 axios.defaults.baseURL = process.env.API_URL;
-axios.interceptors.request.use(
-  config => {
-    const TOKEN = '';
-    if (TOKEN !== null) {
-      config.headers = {
-        Authorization: `bearer ${TOKEN}`,
-      };
-    }
-    return config;
-  },
-  error => Promise.reject(error)
-);
 
 export const httpClient = {
   get(url, config) {

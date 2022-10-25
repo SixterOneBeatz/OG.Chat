@@ -17,10 +17,13 @@
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
     "@babel/runtime": "^7.17.9",
+    "@microsoft/signalr": "^6.0.10",
+    "@microsoft/signalr-protocol-msgpack": "^6.0.10",
     "axios": "^0.27.0",
     "babel-loader": "^8.2.5",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.4.2"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.17.0",
