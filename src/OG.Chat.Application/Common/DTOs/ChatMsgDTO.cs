@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OG.Chat.Application.Common.DTOs
+﻿namespace OG.Chat.Application.Common.DTOs
 {
     public record class ChatMsgDTO(string? Author, string Text)
     {

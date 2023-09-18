@@ -1,25 +1,27 @@
-import { useContext, useEffect, useState } from 'react';
-import { ChatRoomContext } from '../contexts/ChatRoomContextProvider';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatRoomService } from '../services/ChatRoomService';
 import { startConnection } from '../services/SignalRService';
+import { useSelector, useDispatch } from "react-redux";
+import { setUsername } from '../redux/chatRoomSlice';
 
 const Join = () => {
-  let chatRoomContext = useContext(ChatRoomContext);
-  let navigate = useNavigate();
-
-  const [userName, setUserName] = useState(chatRoomContext.userName);
+  
+  const navigate = useNavigate();
+  
+  const userName = useSelector(state => state.chatRoom.username);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (chatRoomContext.userName !== '') {
-      navigate('chatroom');
+    if (userName !== '') {
+      navigate('/chatroom');
     }
   }, []);
 
   const handleJoin = e => {
     e.stopPropagation();
-    if (chatRoomContext.userName !== '') {
-      ChatRoomService.join(chatRoomContext.userName)
+    if (userName !== '') {
+      ChatRoomService.join(userName)
         .then(async response => {
           await startConnection();
           navigate('/chatroom');
@@ -28,14 +30,16 @@ const Join = () => {
     }
   };
 
-  useEffect(() => chatRoomContext.setUserName(userName), [userName]);
+  const handleChange = e => {
+    dispatch(setUsername(e.target.value));
+  }
 
   return (
     <>
       <input
         type='text'
         placeholder='Username...'
-        onChange={e => setUserName(e.target.value)}
+        onChange={handleChange}
         value={userName}
       />
       <button onClick={handleJoin}>Join</button>

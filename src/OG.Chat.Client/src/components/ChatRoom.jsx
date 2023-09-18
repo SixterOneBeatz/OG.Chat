@@ -1,43 +1,39 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChatRoomContext } from '../contexts/ChatRoomContextProvider';
 import { ChatRoomService } from '../services/ChatRoomService';
 import { hubConnection } from '../services/SignalRService';
+import { addMessage, resetMessages } from '../redux/chatRoomSlice';
+import { useSelector, useDispatch } from "react-redux";
 
 const ChatRoom = () => {
-  let chatRoomContext = useContext(ChatRoomContext);
-  let navigate = useNavigate();
+  const { username, messages } = useSelector(state => state.chatRoom);
+  const dispatch = useDispatch();
+
+  const navigate = useNavigate();
 
   const [message, setMessage] = useState('');
-  const [incomingMsg, setIncomingMsg] = useState({});
 
   const handleSend = e => {
     e.stopPropagation();
-    ChatRoomService.sendMessage(chatRoomContext.userName, message)
-      .then(response => {})
+    ChatRoomService.sendMessage(username, message)
+      .then(response => setMessage(''))
       .catch(err => console.error(err));
   };
 
-  const handleReset = () => chatRoomContext.resetMessages();
+  const handleReset = () => dispatch(resetMessages());
 
   useEffect(() => {
-    if (chatRoomContext.userName === '') {
+    if (username === '') {
       navigate('/');
     }
 
     if (hubConnection) {
-      debugger;
       hubConnection.off('SendMessage');
       hubConnection.on('SendMessage', hubResponse => {
-        setIncomingMsg({ ...hubResponse });
+        dispatch(addMessage({ ...hubResponse }));
       });
     }
   }, []);
-
-  useEffect(() => {
-    console.log(incomingMsg);
-    chatRoomContext.addMessage(incomingMsg);
-  }, [incomingMsg]);
 
   return (
     <>
@@ -50,7 +46,7 @@ const ChatRoom = () => {
       <button onClick={handleSend}>Send</button>
       <button onClick={handleReset}>Reset</button>
       <ul>
-        {chatRoomContext.messages.map(
+        {messages.map(
           (m, i) =>
             m.author !== undefined &&
             m.text !== undefined && (

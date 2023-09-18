@@ -1,10 +1,12 @@
 import { RouterProvider } from 'react-router-dom';
-import ChatRoomContextProvider from './contexts/ChatRoomContextProvider';
 import { router } from './shared/App.routing';
+import { Provider } from 'react-redux';
+import store from './redux/store';
+
 export const App = () => {
   return (
-    <ChatRoomContextProvider>
+    <Provider store={store}>
       <RouterProvider router={router} />
-    </ChatRoomContextProvider>
-  );
+    </Provider>
+  );np
 };

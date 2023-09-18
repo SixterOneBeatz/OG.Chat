@@ -2,11 +2,6 @@
 using OG.Chat.Application.Common.Interfaces;
 using Orleans;
 using Orleans.Streams;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OG.Chat.Infrastructure.Grains
 {
@@ -32,7 +27,7 @@ namespace OG.Chat.Infrastructure.Grains
         {
             _onlineMembers.Add(nickname);
 
-            await _stream.OnNextAsync(new("System",$"{nickname} joins the chat '{this.GetPrimaryKeyString()}' ..."));
+            await _stream.OnNextAsync(new("System", $"{nickname} joins the chat '{this.GetPrimaryKeyString()}' ..."));
 
             return _stream.Guid;
         }
