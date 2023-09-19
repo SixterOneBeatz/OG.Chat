@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatRoomService } from '../services/ChatRoomService';
-import { hubConnection } from '../services/SignalRService';
+import { startListening } from '../services/SignalRService';
 import { addMessage, resetMessages } from '../redux/chatRoomSlice';
 import { useSelector, useDispatch } from "react-redux";
 
@@ -27,12 +27,7 @@ const ChatRoom = () => {
       navigate('/');
     }
 
-    if (hubConnection) {
-      hubConnection.off('SendMessage');
-      hubConnection.on('SendMessage', hubResponse => {
-        dispatch(addMessage({ ...hubResponse }));
-      });
-    }
+    startListening((hubResponse) => dispatch(addMessage({...hubResponse})));
   }, []);
 
   return (
