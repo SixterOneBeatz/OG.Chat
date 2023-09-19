@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChatRoomService } from '../services/ChatRoomService';
 import { startConnection } from '../services/SignalRService';
 import { useSelector, useDispatch } from "react-redux";
 import { setUsername } from '../redux/chatRoomSlice';
+import { useLazyJoinQuery } from '../services/ChatRoomService';
 
 const Join = () => {
   
@@ -11,6 +11,7 @@ const Join = () => {
   
   const userName = useSelector(state => state.chatRoom.username);
   const dispatch = useDispatch();
+  const [trigger, result, lastPromiseInfo] = useLazyJoinQuery();
 
   useEffect(() => {
     if (userName !== '') {
@@ -21,7 +22,8 @@ const Join = () => {
   const handleJoin = e => {
     e.stopPropagation();
     if (userName !== '') {
-      ChatRoomService.join(userName)
+      trigger(userName)
+        .unwrap()
         .then(async response => {
           await startConnection();
           navigate('/chatroom');

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChatRoomService } from '../services/ChatRoomService';
 import { startListening } from '../services/SignalRService';
 import { addMessage, resetMessages } from '../redux/chatRoomSlice';
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch } from 'react-redux';
+import { useSendMessageMutation } from '../services/ChatRoomService';
 
 const ChatRoom = () => {
   const { username, messages } = useSelector(state => state.chatRoom);
   const dispatch = useDispatch();
+  const [sendMessage] = useSendMessageMutation();
 
   const navigate = useNavigate();
 
@@ -15,7 +16,8 @@ const ChatRoom = () => {
 
   const handleSend = e => {
     e.stopPropagation();
-    ChatRoomService.sendMessage(username, message)
+    sendMessage({ username, message })
+      .unwrap()
       .then(response => setMessage(''))
       .catch(err => console.error(err));
   };
@@ -27,7 +29,7 @@ const ChatRoom = () => {
       navigate('/');
     }
 
-    startListening((hubResponse) => dispatch(addMessage({...hubResponse})));
+    startListening(hubResponse => dispatch(addMessage({ ...hubResponse })));
   }, []);
 
   return (
