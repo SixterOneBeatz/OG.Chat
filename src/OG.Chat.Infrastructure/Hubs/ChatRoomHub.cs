@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace OG.Chat.API.Hubs
+namespace OG.Chat.Infrastructure.Hubs
 {
     public class ChatRoomHub : Hub
     {
-
     }
 }

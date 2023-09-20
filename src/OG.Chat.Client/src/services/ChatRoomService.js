@@ -41,8 +41,11 @@ export const chatRoomApi = createApi({
         body: { author: data.username, text: data.message },
       }),
     }),
+    getMessages: builder.query({
+      query: roomname => ({ url: `GetMessages/${roomname}` }),
+    }),
   }),
 });
 
-export const { useJoinMutation, useLeaveMutation, useSendMessageMutation } =
+export const { useJoinMutation, useLeaveMutation, useSendMessageMutation, useLazyGetMessagesQuery } =
   chatRoomApi;

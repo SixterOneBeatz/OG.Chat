@@ -19,10 +19,13 @@ export const chatRoomSlice = createSlice({
         },
         resetMessages: (state) => {
             state.messages = [];
+        },
+        replaceMessages: (state, action) => {
+            state.messages = action.payload
         }
     }
 });
 
-export const { setUsername, setRoomname, addMessage, resetMessages } = chatRoomSlice.actions;
+export const { setUsername, setRoomname, addMessage, resetMessages, replaceMessages } = chatRoomSlice.actions;
 
 export default chatRoomSlice.reducer;

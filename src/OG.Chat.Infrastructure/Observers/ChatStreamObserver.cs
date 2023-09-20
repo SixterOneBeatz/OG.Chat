@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using OG.Chat.API.Hubs;
 using OG.Chat.Application.Common.DTOs;
+using OG.Chat.Infrastructure.Hubs;
 using Orleans.Streams;
 
-namespace OG.Chat.API.Observers
+namespace OG.Chat.Infrastructure.Observers
 {
     public class ChatStreamObserver : IAsyncObserver<ChatMsgDTO>
     {

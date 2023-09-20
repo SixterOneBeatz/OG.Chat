@@ -1,7 +1,6 @@
-﻿using OG.Chat.API.Hubs;
-using OG.Chat.Application;
+﻿using OG.Chat.Application;
 using OG.Chat.Infrastructure;
-using Orleans.Hosting;
+using OG.Chat.Infrastructure.Hubs;
 
 namespace OG.Chat.API
 {
@@ -28,13 +27,7 @@ namespace OG.Chat.API
         }
 
         public static void ConfigureHost(this IHostBuilder host)
-            => host.UseOrleans(siloBuilder =>
-            {
-                siloBuilder.UseLocalhostClustering();
-                siloBuilder.AddMemoryGrainStorageAsDefault();
-                siloBuilder.AddSimpleMessageStreamProvider("Chat");
-                siloBuilder.AddMemoryGrainStorage("PubSubStore");
-            }).ConfigureLogging(logging => logging.AddConsole());
+            => host.InfrastructureHosting().ConfigureLogging(logging => logging.AddConsole());
 
         public static void Configure(this WebApplication app)
         {

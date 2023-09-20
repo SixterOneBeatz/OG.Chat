@@ -1,6 +1,10 @@
 ﻿
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 using OG.Chat.Application.Common.DTOs;
 using OG.Chat.Application.Common.Interfaces;
+using OG.Chat.Infrastructure.Hubs;
+using OG.Chat.Infrastructure.Observers;
 using Orleans;
 using Orleans.Streams;
 
@@ -12,12 +16,15 @@ namespace OG.Chat.Infrastructure.Grains
         private readonly List<string> _onlineMembers = new();
 
         private IAsyncStream<ChatMsgDTO> _stream = null!;
+        private IHubContext<ChatRoomHub> _hubContext = null!;
 
         public override Task OnActivateAsync()
         {
             var streamProvider = GetStreamProvider("Chat");
 
             _stream = streamProvider.GetStream<ChatMsgDTO>(Guid.NewGuid(), this.GetPrimaryKeyString());
+
+            _hubContext = ServiceProvider.GetRequiredService<IHubContext<ChatRoomHub>>();
 
             return base.OnActivateAsync();
         }
@@ -27,6 +34,10 @@ namespace OG.Chat.Infrastructure.Grains
         public async Task<Guid> Join(string nickname)
         {
             _onlineMembers.Add(nickname);
+
+            var subscriptionHandlers = await _stream.GetAllSubscriptionHandles();
+            if (!subscriptionHandlers.Any())
+                await _stream.SubscribeAsync(new ChatStreamObserver(this.GetPrimaryKeyString(), _hubContext));
 
             await _stream.OnNextAsync(new("System", $"{nickname} joins the chat '{this.GetPrimaryKeyString()}' ..."));
 
@@ -41,6 +52,9 @@ namespace OG.Chat.Infrastructure.Grains
 
             if (_onlineMembers.Count == 0)
             {
+                var subscriptionHandlers = await _stream.GetAllSubscriptionHandles();
+                foreach (var handle in subscriptionHandlers)
+                    await handle.UnsubscribeAsync();
                 await base.OnDeactivateAsync();
             }
 
@@ -54,15 +68,11 @@ namespace OG.Chat.Infrastructure.Grains
             await _stream.OnNextAsync(message);
         }
 
-        public Task<ChatMsgDTO[]> ReadHistory(int numberOfMessages)
+        public async Task<IEnumerable<ChatMsgDTO>> ReadHistory()
         {
-            var response = _messages
-                .OrderByDescending(x => x.Created)
-                .Take(numberOfMessages)
-                .OrderBy(x => x.Created)
-                .ToArray();
+            var response = _messages.OrderByDescending(x => x.Created).ToList();
 
-            return Task.FromResult(response);
+            return await Task.FromResult(response);
         }
     }
 }

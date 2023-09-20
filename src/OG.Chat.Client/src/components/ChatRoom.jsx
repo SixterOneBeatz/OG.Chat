@@ -6,11 +6,13 @@ import {
   resetMessages,
   setRoomname,
   setUsername,
+  replaceMessages,
 } from '../redux/chatRoomSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   useSendMessageMutation,
   useLeaveMutation,
+  useLazyGetMessagesQuery,
 } from '../services/ChatRoomService';
 
 const ChatRoom = () => {
@@ -18,6 +20,7 @@ const ChatRoom = () => {
   const dispatch = useDispatch();
   const [sendMessage] = useSendMessageMutation();
   const [leave] = useLeaveMutation();
+  const [getInitialMessages] = useLazyGetMessagesQuery(roomname);
 
   const navigate = useNavigate();
 
@@ -47,6 +50,11 @@ const ChatRoom = () => {
   useEffect(() => {
     if (username === '' && roomname === '') {
       navigate('/');
+    } else {
+      getInitialMessages(roomname)
+        .unwrap()
+        .then(response => dispatch(replaceMessages(response)))
+        .catch(err => console.error(err));
     }
 
     startListening(hubResponse => dispatch(addMessage({ ...hubResponse })));

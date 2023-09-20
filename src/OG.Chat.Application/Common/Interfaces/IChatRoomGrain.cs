@@ -8,7 +8,7 @@ namespace OG.Chat.Application.Common.Interfaces
         Task<Guid> Join(string nickname);
         Task<Guid> Leave(string nickname);
         Task SendMessage(ChatMsgDTO message);
-        Task<ChatMsgDTO[]> ReadHistory(int numberOfMessages);
+        Task<IEnumerable<ChatMsgDTO>> ReadHistory();
         Task<string[]> GetMembers();
     }
 }

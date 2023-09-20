@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-using OG.Chat.API.Hubs;
-using OG.Chat.API.Observers;
 using OG.Chat.Application.Common.DTOs;
 using OG.Chat.Application.Common.Interfaces;
 using Orleans;
-using Orleans.Streams;
 
 namespace OG.Chat.API.Controllers
 {
@@ -14,13 +10,10 @@ namespace OG.Chat.API.Controllers
     public class ChatRoomController : ControllerBase
     {
         private readonly IClusterClient _clusterClient;
-        private readonly IHubContext<ChatRoomHub> _hubContext;
-        private IAsyncStream<ChatMsgDTO> _stream = null!;
 
-        public ChatRoomController(IClusterClient clusterClient, IHubContext<ChatRoomHub> hubContext)
+        public ChatRoomController(IClusterClient clusterClient)
         {
             _clusterClient = clusterClient;
-            _hubContext = hubContext;
         }
 
         [HttpPost("Join")]
@@ -28,13 +21,6 @@ namespace OG.Chat.API.Controllers
         {
             var grain = _clusterClient.GetGrain<IChatRoomGrain>(user.RoomName);
             Guid response = await grain.Join(user.NickName);
-
-            _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response, user.RoomName);
-
-            var subscriptionHandlers = await _stream.GetAllSubscriptionHandles();
-            if (!subscriptionHandlers.Any())
-                await _stream.SubscribeAsync(new ChatStreamObserver(user.RoomName, _hubContext));
-
             return Ok(response);
         }
 
@@ -43,16 +29,6 @@ namespace OG.Chat.API.Controllers
         {
             var grain = _clusterClient.GetGrain<IChatRoomGrain>(user.RoomName);
             var response = await grain.Leave(user.NickName);
-            _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response, user.RoomName);
-
-            var subscriptionHandlers = await _stream.GetAllSubscriptionHandles();
-
-            var members = await grain.GetMembers();
-
-            if (!members.Any())
-                foreach (var handle in subscriptionHandlers)
-                    await handle.UnsubscribeAsync();
-
             return Ok(response);
         }
 
@@ -62,6 +38,14 @@ namespace OG.Chat.API.Controllers
             var grain = _clusterClient.GetGrain<IChatRoomGrain>(roomname);
             await grain.SendMessage(msg);
             return Ok();
+        }
+
+        [HttpGet("GetMessages/{roomname}")]
+        public async Task<ActionResult<IEnumerable<ChatMsgDTO>>> GetMessages(string roomname)
+        {
+            var grain = _clusterClient.GetGrain<IChatRoomGrain>(roomname);
+            var response = await grain.ReadHistory();
+            return Ok(response);
         }
     }
 }
