@@ -1,28 +1,27 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { startConnection } from '../services/SignalRService';
-import { useSelector, useDispatch } from "react-redux";
-import { setUsername } from '../redux/chatRoomSlice';
-import { useLazyJoinQuery } from '../services/ChatRoomService';
+import { useSelector, useDispatch } from 'react-redux';
+import { setRoomname, setUsername } from '../redux/chatRoomSlice';
+import { useJoinMutation } from '../services/ChatRoomService';
 
 const Join = () => {
-  
   const navigate = useNavigate();
-  
-  const userName = useSelector(state => state.chatRoom.username);
+
+  const { username, roomname } = useSelector(state => state.chatRoom);
   const dispatch = useDispatch();
-  const [trigger, result, lastPromiseInfo] = useLazyJoinQuery();
+  const [join] = useJoinMutation();
 
   useEffect(() => {
-    if (userName !== '') {
+    if (username !== '' && roomname !== '') {
       navigate('/chatroom');
     }
   }, []);
 
   const handleJoin = e => {
     e.stopPropagation();
-    if (userName !== '') {
-      trigger(userName)
+    if (username !== '' && roomname !== '') {
+      join({ roomname, username })
         .unwrap()
         .then(async response => {
           await startConnection();
@@ -32,17 +31,27 @@ const Join = () => {
     }
   };
 
-  const handleChange = e => {
+  const handleUsernameChange = e => {
     dispatch(setUsername(e.target.value));
-  }
+  };
+
+  const handleRoomnameChange = e => {
+    dispatch(setRoomname(e.target.value));
+  };
 
   return (
     <>
       <input
         type='text'
         placeholder='Username...'
-        onChange={handleChange}
-        value={userName}
+        onChange={handleUsernameChange}
+        value={username}
+      />
+      <input
+        type='text'
+        placeholder='Room...'
+        onChange={handleRoomnameChange}
+        value={roomname}
       />
       <button onClick={handleJoin}>Join</button>
     </>

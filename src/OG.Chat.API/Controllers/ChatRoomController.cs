@@ -23,27 +23,27 @@ namespace OG.Chat.API.Controllers
             _hubContext = hubContext;
         }
 
-        [HttpGet("Join/{nickname}")]
-        public async Task<IActionResult> Join(string nickname)
+        [HttpPost("Join")]
+        public async Task<IActionResult> Join([FromBody] UserDTO user)
         {
-            var grain = _clusterClient.GetGrain<IChatRoomGrain>("DefaultGrain");
-            Guid response = await grain.Join(nickname);
+            var grain = _clusterClient.GetGrain<IChatRoomGrain>(user.RoomName);
+            Guid response = await grain.Join(user.NickName);
 
-            _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response, "default");
+            _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response, user.RoomName);
 
             var subscriptionHandlers = await _stream.GetAllSubscriptionHandles();
             if (!subscriptionHandlers.Any())
-                await _stream.SubscribeAsync(new ChatStreamObserver("DefaultGrain", _hubContext));
+                await _stream.SubscribeAsync(new ChatStreamObserver(user.RoomName, _hubContext));
 
             return Ok(response);
         }
 
-        [HttpGet("Leave/{nickname}")]
-        public async Task<IActionResult> Leave(string nickname)
+        [HttpPost("Leave")]
+        public async Task<IActionResult> Leave([FromBody] UserDTO user)
         {
-            var grain = _clusterClient.GetGrain<IChatRoomGrain>("DefaultGrain");
-            var response = await grain.Leave(nickname);
-            _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response, "default");
+            var grain = _clusterClient.GetGrain<IChatRoomGrain>(user.RoomName);
+            var response = await grain.Leave(user.NickName);
+            _stream = _clusterClient.GetStreamProvider("Chat").GetStream<ChatMsgDTO>(response, user.RoomName);
 
             var subscriptionHandlers = await _stream.GetAllSubscriptionHandles();
 
@@ -56,10 +56,10 @@ namespace OG.Chat.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("SendMessage")]
-        public async Task<IActionResult> SendMessage(ChatMsgDTO msg)
+        [HttpPost("SendMessage/{roomname}")]
+        public async Task<IActionResult> SendMessage(string roomname, [FromBody] ChatMsgDTO msg)
         {
-            var grain = _clusterClient.GetGrain<IChatRoomGrain>("DefaultGrain");
+            var grain = _clusterClient.GetGrain<IChatRoomGrain>(roomname);
             await grain.SendMessage(msg);
             return Ok();
         }

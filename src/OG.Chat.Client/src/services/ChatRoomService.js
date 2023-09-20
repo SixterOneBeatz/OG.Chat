@@ -20,15 +20,23 @@ export const chatRoomApi = createApi({
   reducerPath: 'chatRoomApi',
   baseQuery: fetchBaseQuery({ baseUrl: `${process.env.API_URL}/ChatRoom/` }),
   endpoints: builder => ({
-    join: builder.query({
-      query: username => ({ url: `Join/${username}` }),
+    join: builder.mutation({
+      query: data => ({
+        url: `Join`,
+        method: 'POST',
+        body: { nickName: data.username, roomName: data.roomname },
+      }),
     }),
-    leave: builder.query({
-      query: username => ({ url: `Leave/${username}` }),
+    leave: builder.mutation({
+      query: data => ({
+        url: `Leave`,
+        method: 'POST',
+        body: { nickName: data.username, roomName: data.roomname },
+      }),
     }),
     sendMessage: builder.mutation({
       query: data => ({
-        url: 'SendMessage',
+        url: `SendMessage/${data.roomname}`,
         method: 'POST',
         body: { author: data.username, text: data.message },
       }),
@@ -36,5 +44,5 @@ export const chatRoomApi = createApi({
   }),
 });
 
-export const { useLazyJoinQuery, useLazyLeaveQuery, useSendMessageMutation } =
+export const { useJoinMutation, useLeaveMutation, useSendMessageMutation } =
   chatRoomApi;

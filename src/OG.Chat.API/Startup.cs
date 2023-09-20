@@ -17,7 +17,7 @@ namespace OG.Chat.API
             services.AddSignalR();
             services.AddCors(options =>
             {
-                string clientUrl = configuration.GetValue<string>("UrlClient");
+                string clientUrl = configuration.GetValue<string>("UrlClient") ?? string.Empty;
 
                 options.AddPolicy("CorsPolicy", corsPolicyBuilder
                     => corsPolicyBuilder.WithOrigins(clientUrl)

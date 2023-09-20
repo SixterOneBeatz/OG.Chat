@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OG.Chat.Application\OG.Chat.Application.csproj" />
-    <ProjectReference Include="..\OG.Chat.Domain\OG.Chat.Domain.csproj" />
   </ItemGroup>
 
 </Project>

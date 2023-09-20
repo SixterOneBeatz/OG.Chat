@@ -1,4 +1,5 @@
-﻿using OG.Chat.Application.Common.DTOs;
+﻿
+using OG.Chat.Application.Common.DTOs;
 using OG.Chat.Application.Common.Interfaces;
 using Orleans;
 using Orleans.Streams;
@@ -16,7 +17,7 @@ namespace OG.Chat.Infrastructure.Grains
         {
             var streamProvider = GetStreamProvider("Chat");
 
-            _stream = streamProvider.GetStream<ChatMsgDTO>(Guid.NewGuid(), "default");
+            _stream = streamProvider.GetStream<ChatMsgDTO>(Guid.NewGuid(), this.GetPrimaryKeyString());
 
             return base.OnActivateAsync();
         }
@@ -37,6 +38,11 @@ namespace OG.Chat.Infrastructure.Grains
             _onlineMembers.Remove(nickname);
 
             await _stream.OnNextAsync(new("System", $"{nickname} leaves the chat '{this.GetPrimaryKeyString()}' ..."));
+
+            if (_onlineMembers.Count == 0)
+            {
+                await base.OnDeactivateAsync();
+            }
 
             return _stream.Guid;
         }

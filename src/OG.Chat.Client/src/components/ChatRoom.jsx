@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { startListening } from '../services/SignalRService';
-import { addMessage, resetMessages } from '../redux/chatRoomSlice';
+import {
+  addMessage,
+  resetMessages,
+  setRoomname,
+  setUsername,
+} from '../redux/chatRoomSlice';
 import { useSelector, useDispatch } from 'react-redux';
-import { useSendMessageMutation } from '../services/ChatRoomService';
+import {
+  useSendMessageMutation,
+  useLeaveMutation,
+} from '../services/ChatRoomService';
 
 const ChatRoom = () => {
-  const { username, messages } = useSelector(state => state.chatRoom);
+  const { username, roomname, messages } = useSelector(state => state.chatRoom);
   const dispatch = useDispatch();
   const [sendMessage] = useSendMessageMutation();
+  const [leave] = useLeaveMutation();
 
   const navigate = useNavigate();
 
@@ -16,7 +25,7 @@ const ChatRoom = () => {
 
   const handleSend = e => {
     e.stopPropagation();
-    sendMessage({ username, message })
+    sendMessage({ roomname, username, message })
       .unwrap()
       .then(response => setMessage(''))
       .catch(err => console.error(err));
@@ -24,8 +33,19 @@ const ChatRoom = () => {
 
   const handleReset = () => dispatch(resetMessages());
 
+  const handleLeave = () => {
+    leave({ roomname, username })
+      .unwrap()
+      .then(response => {
+        dispatch(setRoomname(''));
+        dispatch(setUsername(''));
+        navigate('/');
+      })
+      .catch(err => console.error(err));
+  };
+
   useEffect(() => {
-    if (username === '') {
+    if (username === '' && roomname === '') {
       navigate('/');
     }
 
@@ -42,6 +62,7 @@ const ChatRoom = () => {
       />
       <button onClick={handleSend}>Send</button>
       <button onClick={handleReset}>Reset</button>
+      <button onClick={handleLeave}>Leave</button>
       <ul>
         {messages.map(
           (m, i) =>
